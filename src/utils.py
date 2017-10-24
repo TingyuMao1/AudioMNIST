@@ -1,0 +1,61 @@
+import librosa
+import os
+import numpy as np
+import torch
+
+
+def lrelu(x, leaky=0.01):
+    return torch.max(x, leaky * x)
+
+
+def load_dataset(path, sr):
+    label_mapping = {
+            "z" : 0, 
+            "1" : 1, 
+            "2" : 2, 
+            "3" : 3, 
+            "4" : 4, 
+            "5" : 5, 
+            "6" : 6, 
+            "7" : 7, 
+            "8" : 8, 
+            "9" : 9, 
+            "o" : 10
+            }
+    dataset = []
+    for f in os.listdir(path):
+        audio, _ = librosa.load(os.path.join(path, f), sr)
+        dataset.append((audio, label_mapping[f[0]]))
+    return dataset
+
+
+def extract_features(audio, sr, n_mfcc):
+    """
+    Extract features from @audio
+
+    The features are 
+        * mfcc
+        * chroma
+        * mel
+        * spectral_contrast
+        * tonnetz
+
+    Refer to http://aqibsaeed.github.io/2016-09-03-urban-sound-classification-part-1/
+
+    @param
+        audio: audio file loaded from librosa
+        sr: sample rate
+        n_mfcc: number of mfcc components
+
+    @return
+        tuple of five extracted features
+    """
+    stft = np.abs(librosa.stft(audio))
+    mfcc = np.mean(librosa.feature.mfcc(y=audio, sr=sr, n_mfcc=n_mfcc).T,axis=0)
+    chroma = np.mean(librosa.feature.chroma_stft(S=stft, sr=sr).T,axis=0)
+    mel = np.mean(librosa.feature.melspectrogram(audio, sr=sr).T,axis=0)
+    sc = np.mean(librosa.feature.spectral_contrast(S=stft, sr=sr).T,axis=0)
+    tonnetz = np.mean(librosa.feature.tonnetz(
+        y=librosa.effects.harmonic(audio), sr=sr).T,axis=0)
+
+    return (mfcc, chroma, mel, sc, tonnetz)

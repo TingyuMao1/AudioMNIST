@@ -1,0 +1,7 @@
+data/*
+*.pyc
+*.zip
+*.gz
+src/.DS_Store
+src/__pycache__
+src/saver
