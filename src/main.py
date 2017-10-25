@@ -9,8 +9,7 @@ from torch.autograd import Variable
 import torch.optim as optim
 import torch.nn.functional as F
 
-from tensorboard import SummaryWriter
-
+from logger import Logger
 from config import Config
 from models.MLP import MLP
 
@@ -116,8 +115,7 @@ def main():
             print("[loading existing model error] {}".format(str(e)))
             model = MLP([n_features, 100, 50, n_labels], conf.dropout)
 
-    loss_writer = SummaryWriter('runs/loss')
-    acc_writer = SummaryWriter('runs/acc')
+    logger = Logger(conf.log_path)
 
     for epoch in range(conf.epochs):
         print("Epoch {}".format(epoch))
@@ -136,8 +134,8 @@ def main():
         print("Validation set\tLoss: {:5.6f}\tAccuracy: {:2.6f}"
                 .format(valid_loss, valid_acc))
 
-        loss_writer.add_scalar("dev loss", valid_loss, epoch)
-        acc_writer.add_scalar("dev acc", valid_acc, epoch)
+        logger.scalar_summary("dev loss", valid_loss, epoch)
+        logger.scalar_summary("dev acc", valid_acc, epoch)
 
     model = torch.load(save_file)
     test_data, test_label = load_data(conf.test_path)
