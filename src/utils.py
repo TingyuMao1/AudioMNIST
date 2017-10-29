@@ -1,11 +1,18 @@
 import librosa
 import os
+import random
 import numpy as np
 import torch
 
 
 def lrelu(x, leaky=0.01):
     return torch.max(x, leaky * x)
+
+
+def acc(output, target):
+    pred = output.data.max(1)[1] # get the index of the max log-probability
+    correct = pred.eq(target.data).cpu().sum()
+    return correct
 
 
 def load_dataset(path, sr):
@@ -59,3 +66,19 @@ def extract_features(audio, sr, n_mfcc):
         y=librosa.effects.harmonic(audio), sr=sr).T,axis=0)
 
     return (mfcc, chroma, mel, sc, tonnetz)
+
+
+def batchify(data, label, batch_size=None, shuffle=False):
+    if not batch_size:
+        batch_size = len(data)
+
+    data_size = len(data)
+    order = list(range(data_size))
+    if shuffle:
+        random.shuffle(order)
+
+    batches = int(np.ceil(1.*data_size/batch_size))
+    for i in range(batches):
+        start = i * batch_size
+        indices = order[start:start+batch_size]
+        yield (data[indices], label[indices])
