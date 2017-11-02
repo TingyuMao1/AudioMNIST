@@ -35,6 +35,18 @@ def load_dataset(path, sr):
         dataset.append((audio, label_mapping[f[0]]))
     return dataset
 
+def Divide(data, sr, fs=0.025, ws=0.01)
+    """
+    Divide the data into overlappling frames, return the number of frames and the matrix
+    """
+    number_of_frames = data.size/(sr*ws)
+    A = np.zeros((number_of_frames, sr*fs))
+    j = 0
+    while j*sr*ws + sr*fs <= data.size:
+        A[j, :] = np.array(data)[j*sr*ws : j*sr*ws + sr*fs]
+        j = j + 1
+    A = A[0:j, :].transpose()
+    return(A.shape[1], A)
 
 def extract_features(audio, sr, n_mfcc):
     """
